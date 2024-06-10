@@ -12,12 +12,8 @@ async def getInitial():
 
 @router.post('/createblog', response_model=Blog)
 async def createBlog(blog: Blog):
-    response = await create_blog(blog)
-    if response:
-        return response
+    return await create_blog(blog)
 
 @router.put('/updateblog{id}', response_model=Blog)
 async def updateBlog(id: str, title:str, content:str):
-    response = await update_blog(id, title, content)
-    if response:
-        return response
+    return await update_blog(id, title, content)
