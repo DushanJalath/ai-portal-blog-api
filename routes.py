@@ -20,11 +20,11 @@ async def get_blog_by_blog_id(blog_id: int):
     entity = await get_blog_by_id({"p_id": blog_id})
     return entity
 
-@router.post('/createblog', response_model=Blog)
-async def createBlog(blog: Blog):
+@router.post('/createblog', response_model=BlogPost)
+async def createBlog(blog: BlogPost):
     return await create_blog(blog)
 
-@router.put('/updateblog{id}', response_model=Blog)
+@router.put('/updateblog{id}', response_model=BlogPost)
 async def updateBlog(id: str, title:str, content:str):
     return await update_blog(id, title, content)
 
