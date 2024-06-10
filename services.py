@@ -8,9 +8,13 @@ def initial_service():
 
 
 async def get_blog_by_id(entity_id: int):
-    entity = await collection_blog.find_one({"p_id": entity_id})
-    if entity is None:
+    try:
+        entity = await collection_blog.find_one({"p_id": entity_id})
+        if entity is None:
+            return None
+        else:
+            json_data = json.loads(json_util.dumps(entity))
+            return json_data
+    except Exception as e:
+        print(f"An error occurred: {e}")
         return None
-    else:
-        json_data = json.loads(json_util.dumps(entity))
-        return json_data
