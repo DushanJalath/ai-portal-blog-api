@@ -14,7 +14,5 @@ async def getInitial():
 @router.get("/blog/{blog_id}")
 async def get_blog_by_blog_id(blog_id: int):
     entity = await get_blog_by_id({"p_id": blog_id})
-    if entity is None:
-        raise HTTPException(status_code=404, detail="Blog not found")
     json_data = json.loads(json_util.dumps(entity))
     return json_data
