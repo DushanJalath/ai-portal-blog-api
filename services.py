@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from bson import ObjectId
 from database import collection_blog
 
 def initial_service():
@@ -9,9 +10,16 @@ async def create_blog(blog):
     return blog
 
 async def update_blog(id, title, content):
-    await collection_blog.update_one(
-        {"blogPost_id":id}, 
+    try:
+        objId = ObjectId(id)
+    except:
+        raise HTTPException(400, "Invalid Id format")
+    
+    result = await collection_blog.update_one(
+        {"blogPost_id":objId}, 
         {"$set":{"title":title, "content":content}}
     )
-    blog = await collection_blog.find_one({"blogPost_id":id})
-    return blog
+    if result.modified_count == 1:
+        blog = await collection_blog.find_one({"blogPost_id":objId})
+        return blog
+    raise HTTPException(404, "Blog not found")
