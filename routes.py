@@ -13,7 +13,4 @@ async def getInitial():
 
 @router.get('/blogsByTags',response_model=List[BlogPost])
 async def Blogs_By_tags(tags : List[int]):
-    response= await get_blogs_byTags(tags)
-    if response:
-        return response
-    raise HTTPException(404, "there are no blogs available with these tags")
+    return await get_blogs_byTags(tags)
