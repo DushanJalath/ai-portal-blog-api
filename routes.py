@@ -1,5 +1,8 @@
+import json
 from fastapi import APIRouter,Depends,HTTPException
+from database import get_blog_by_id
 from services import initial_service
+from bson import json_util
 
 
 
@@ -8,3 +11,14 @@ router=APIRouter()
 @router.get('/')
 async def getInitial():
     return initial_service()
+
+@router.get("/blog/{blog_id}")
+async def get_blog_by_blog_id(blog_id: int):
+    try:
+        entity = await get_blog_by_id({"p_id": blog_id})
+        if entity is None:
+            raise HTTPException(status_code=404, detail="Blog not found")
+        json_data = json.loads(json_util.dumps(entity))
+        return json_data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred: {e}")
