@@ -1,7 +1,7 @@
 import json
 from typing import List
 from fastapi import APIRouter,Depends,HTTPException
-from services import initial_service,get_blogs_byTags,create_blog,update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs, reply_comment,  write_comment
+from services import fetch_comments_and_replies, initial_service,get_blogs_byTags,create_blog,update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs, reply_comment,  write_comment
 from typing import List
 from models import BlogPost,Comment, Reply
 
@@ -23,8 +23,8 @@ async def get_blog_by_blog_id(blog_id: int):
 
 
 
-@router.post('/createblog', response_model=Blog)
-async def createBlog(blog: Blog):
+@router.post('/createblog', response_model=BlogPost)
+async def createBlog(blog: BlogPost):
     return await create_blog(blog)
 
 
@@ -44,7 +44,7 @@ async def replyComment(reply: Reply):
 
 
 
-@router.get('/blogs', response_model=List[Blog])
+@router.get('/blogs', response_model=List[BlogPost])
 async def getAllBlogs():
     return await get_all_blogs()
 
@@ -59,4 +59,6 @@ async def Blogs_By_tags(tags : List[int]):
     return await get_blogs_byTags(tags)
 
 
-
+@router.get('/blog/{id}/comments', response_model=List[Comment])
+async def get_comments_and_replies(id:str):
+    return await fetch_comments_and_replies(id)
