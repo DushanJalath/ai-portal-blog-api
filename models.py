@@ -1,4 +1,4 @@
-
+  
 from pydantic import BaseModel, Field
 from uuid import UUID, uuid4
 from typing import List
@@ -27,5 +27,4 @@ class Reply(BaseModel):
     user_id:UUID #replying person`s` user_id
     text:str #reply content
     repliedAt:datetime = Field(default_factory=datetime.utcnow) #replied date time -utc time
-
 
