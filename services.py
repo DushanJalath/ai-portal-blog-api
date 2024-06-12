@@ -45,3 +45,14 @@ async def update_blog(id, title, content):
     
     raise HTTPException(400, "Blog update failed")
 
+async def write_comment(comment):
+    result = await collection_blog.insert_one(comment)
+    if result.inserted_id:
+        return comment
+    raise HTTPException(400, "Comment Insertion failed")
+
+async def reply_comment(reply):
+    result = await collection_blog.insert_one(reply)
+    if result.inserted_id:
+        return reply
+    raise HTTPException(400, "Reply Insertion failed")

@@ -1,8 +1,8 @@
 import json
 from fastapi import APIRouter,Depends,HTTPException
 
-from models import Blog
-from services import create_blog, initial_service, update_blog, get_blog_by_id
+from models import Blog, Comment, Reply
+from services import create_blog, initial_service, reply_comment, update_blog, get_blog_by_id, write_comment
 
 
 
@@ -25,4 +25,12 @@ async def createBlog(blog: Blog):
 @router.put('/updateblog{id}', response_model=Blog)
 async def updateBlog(id: str, title:str, content:str):
     return await update_blog(id, title, content)
+
+@router.post('/write-comment', response_model=Comment)
+async def writeComment(comment: Comment):
+    return await write_comment(comment)
+
+@router.post('/reply-comment', response_model=Reply)
+async def replyComment(reply: Reply):
+    return await reply_comment(Reply)
 
