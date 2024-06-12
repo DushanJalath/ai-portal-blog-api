@@ -1,8 +1,10 @@
 import json
 from typing import List
 from fastapi import APIRouter,Depends,HTTPException
-from models import Blog
-from services import create_blog, delete_blog_by_id, get_all_blogs, initial_service, update_blog, get_blog_by_id
+
+from services import initial_service,get_blogs_byTags,create_blog, initial_service, update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs,
+from typing import List
+from models import BlogPost
 
 
 
@@ -13,10 +15,12 @@ async def getInitial():
     return initial_service()
 
 
+
 @router.get("/blog/{blog_id}")
 async def get_blog_by_blog_id(blog_id: int):
     entity = await get_blog_by_id({"p_id": blog_id})
     return entity
+
 
 
 @router.post('/createblog', response_model=Blog)
@@ -24,9 +28,11 @@ async def createBlog(blog: Blog):
     return await create_blog(blog)
 
 
-@router.put('/updateblog{id}', response_model=Blog)
+
+@router.put('/updateblog{id}', response_model=BlogPost)
 async def updateBlog(id: str, title:str, content:str):
     return await update_blog(id, title, content)
+
 
 
 @router.get('/blogs', response_model=List[Blog])
@@ -37,5 +43,10 @@ async def getAllBlogs():
 @router.delete('/blogs/{id}')
 async def deleteBlog(id:str):
     return await delete_blog_by_id(id)
+
+
+@router.get('/blogsByTags',response_model=List[BlogPost])
+async def Blogs_By_tags(tags : List[int]):
+    return await get_blogs_byTags(tags)
 
 
