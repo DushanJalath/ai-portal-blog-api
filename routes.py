@@ -40,7 +40,7 @@ async def writeComment(comment: Comment):
 
 @router.post('/reply-comment', response_model=Reply)
 async def replyComment(reply: Reply):
-    return await reply_comment(Reply)
+    return await reply_comment(reply)
 
 
 

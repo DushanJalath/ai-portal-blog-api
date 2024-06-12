@@ -13,7 +13,7 @@ def initial_service():
 
 async def get_blog_by_id(entity_id: int):
     try:
-        entity = await collection_blog.find_one({"p_id": entity_id})
+        entity = await collection_blog.find_one({"blogPost_id": entity_id})
         if entity is None:
             return {"message": f"Blog with id {entity_id} not found"}
         else:
@@ -52,13 +52,13 @@ async def update_blog(id, title, content):
 
 
 async def write_comment(comment):
-    result = await collection_blog.insert_one(comment)
+    result = await collection_comment.insert_one(comment)
     if result.inserted_id:
         return comment
     raise HTTPException(400, "Comment Insertion failed")
 
 async def reply_comment(reply):
-    result = await collection_blog.insert_one(reply)
+    result = await collection_reply.insert_one(reply)
     if result.inserted_id:
         return reply
     raise HTTPException(400, "Reply Insertion failed")
