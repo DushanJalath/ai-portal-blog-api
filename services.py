@@ -1,8 +1,9 @@
 import json
+from uuid import UUID
 from fastapi import HTTPException
 from bson import ObjectId,json_util
-from database import collection_blog
-from models import BlogPost
+from database import collection_blog, collection_comment, collection_reply
+from models import BlogPost, Comment, Reply
 from typing import List
 
 
@@ -92,3 +93,32 @@ async def get_blogs_byTags(tags : List[int]):
         blogs.append(BlogPost(**document))
     return blogs
 
+
+async def fetch_replies(parent_content_id: UUID):
+    replies_cursor = await collection_reply.find({"parentContent_id": parent_content_id})
+    replies = [Reply(**reply) async for reply in replies_cursor]
+    
+    # Recursively fetch replies for each reply
+    for reply in replies:
+        reply.replies = await fetch_replies(reply.reply_id)
+    
+    return replies
+
+
+async def fetch_comments_and_replies(id: str):
+    try:
+        objId = ObjectId(id)
+    except:
+        raise HTTPException(400, "Invalid Id format")
+    
+    comments_cursor = await collection_comment.find({"blogPost_id": objId})
+    comments = [Comment(**comment) async for comment in comments_cursor]
+    
+    if len(comments)==0 :
+        raise HTTPException(404, "Comments not found")
+        
+    # Fetch replies for each comment
+    for comment in comments:
+        comment.replies = await fetch_replies(comment.comment_id)
+    
+    return comments
