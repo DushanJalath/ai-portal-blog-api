@@ -11,9 +11,9 @@ def initial_service():
     return {"Ping":"Pong"}
 
 
-async def get_blog_by_id(entity_id: int):
+async def get_blog_by_id(entity_id: str): #data type changed from int to str
     try:
-        entity = await collection_blog.find_one({"p_id": entity_id})
+        entity = await collection_blog.find_one({"_id": entity_id}) #blogPost_id to _id , becaue in models.py ,"blogPost_id" changed to "_id" by  " alias="_id" "
         if entity is None:
             return {"message": f"Blog with id {entity_id} not found"}
         else:
@@ -25,25 +25,26 @@ async def get_blog_by_id(entity_id: int):
 
 
 async def create_blog(blog):
-    result = await collection_blog.insert_one(blog)
+    blog_dict = blog.dict(by_alias=True) # added this part because dictionary data type should be used for insert_one as parametre
+    result = await collection_blog.insert_one(blog_dict)
     if result.inserted_id:
         return blog
     raise HTTPException(400, "Blog Insertion failed")
 
 
 async def update_blog(id, title, content):
-    try:
-        objId = ObjectId(id)
-    except:
-        raise HTTPException(400, "Invalid Id format")
-    
+    # try:
+    #     objId = ObjectId(id)
+    # except:
+    #     raise HTTPException(400, "Invalid Id format")
+    # id type changed to str, so just store as str 
     result = await collection_blog.update_one(
-        {"blogPost_id":objId}, 
+        {"_id":id}, #objID to id and also blogPost_id to _id because in models.py ,"blogPost_id" changed to "_id" by  " alias="_id" "
         {"$set":{"title":title, "content":content}}
     )
 
     if result.modified_count == 1:
-        blog = await collection_blog.find_one({"blogPost_id":objId})
+        blog = await collection_blog.find_one({"_id":id}) #objID to id also blogPost_id to _id because in models.py ,"blogPost_id" changed to "_id" by  " alias="_id" "
         return blog
     elif result.modified_count == 0:
         raise HTTPException(404, "Blog not found")
@@ -52,13 +53,15 @@ async def update_blog(id, title, content):
 
 
 async def write_comment(comment):
-    result = await collection_blog.insert_one(comment)
+    comment_dict = comment.dict(by_alias=True) # added this part because dictionary data type should be used for insert_one as parameter
+    result = await collection_comment.insert_one(comment_dict)
     if result.inserted_id:
         return comment
     raise HTTPException(400, "Comment Insertion failed")
 
 async def reply_comment(reply):
-    result = await collection_blog.insert_one(reply)
+    reply_dict = reply.dict(by_alias=True) # added this part because dictionary data type should be used for insert_one as parameter
+    result = await collection_reply.insert_one(reply_dict)
     if result.inserted_id:
         return reply
     raise HTTPException(400, "Reply Insertion failed")
@@ -79,39 +82,39 @@ async def get_all_blogs():
     
 
 async def delete_blog_by_id(id: str):
-    result = await collection_blog.delete_one({'_id': ObjectId(id)})
+    result = await collection_blog.delete_one({'_id': id}) #_id,  because in models.py ,"blogPost_id" changed to "_id" by  " alias="_id" "
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail=f"Blog with id {id} not found")
     return {"message": "Blog deleted successfully"}
 
 async def get_blogs_byTags(tags : List[int]):
     blogs=[]
-    if collection_blog.count_documents({"tags": {"$in": tags}}) == 0:
+    if await collection_blog.count_documents({"tags": {"$in": tags}}) == 0: # await added because httpException didnt work due to have no enough time to count.
         raise HTTPException(status_code=404, detail="no blogs found with the given tags.")
-    cursor=collection_blog.find({"tags": {"$in": tags}})
-    for document in cursor:
+    cursor=collection_blog.find({"tags": {"$in": tags}}) 
+    async for document in cursor: # added async
         blogs.append(BlogPost(**document))
     return blogs
 
 
-async def fetch_replies(parent_content_id: UUID):
-    replies_cursor = await collection_reply.find({"parentContent_id": parent_content_id})
+async def fetch_replies(parent_content_id: str): #uuid to str ,models.py -> blogPost_id changed from uuid to str
+    replies_cursor = collection_reply.find({"parentContent_id": parent_content_id}) #await removed, TypeError: object AsyncIOMotorCursor can't be used in 'await' expression 
     replies = [Reply(**reply) async for reply in replies_cursor]
     
     # Recursively fetch replies for each reply
     for reply in replies:
-        reply.replies = await fetch_replies(reply.reply_id)
+        reply.replies = await fetch_replies(reply.reply_id) #added an attribute to the model.py -> "Reply" to store replies since reply.replies called here
     
     return replies
 
 
 async def fetch_comments_and_replies(id: str):
-    try:
-        objId = ObjectId(id)
-    except:
-        raise HTTPException(400, "Invalid Id format")
-    
-    comments_cursor = await collection_comment.find({"blogPost_id": objId})
+    # try:
+    #     objId = ObjectId(id)
+    # except:
+    #     raise HTTPException(400, "Invalid Id format")
+     # id type changed to str, so just store as str 
+    comments_cursor = collection_comment.find({"blogPost_id": id}) #objid to id , await removed - TypeError: object AsyncIOMotorCursor can't be used in 'await' expression 
     comments = [Comment(**comment) async for comment in comments_cursor]
     
     if len(comments)==0 :
@@ -119,6 +122,6 @@ async def fetch_comments_and_replies(id: str):
         
     # Fetch replies for each comment
     for comment in comments:
-        comment.replies = await fetch_replies(comment.comment_id)
+        comment.replies = await fetch_replies(comment.comment_id)#added an attribute to the model.py "Comment" to store replies since comment.replies called here
     
     return comments
