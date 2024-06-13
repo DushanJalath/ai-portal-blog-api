@@ -1,6 +1,6 @@
 import json
 from typing import List
-from fastapi import APIRouter,Depends,HTTPException
+from fastapi import APIRouter,Depends,HTTPException,Query #query used for get_blogs_by_tag() function
 from services import fetch_comments_and_replies, initial_service,get_blogs_byTags,create_blog,update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs, reply_comment,  write_comment
 from typing import List
 from models import BlogPost,Comment, Reply
@@ -17,8 +17,8 @@ async def getInitial():
 
 
 @router.get("/blog/{blog_id}")
-async def get_blog_by_blog_id(blog_id: int):
-    entity = await get_blog_by_id({"p_id": blog_id})
+async def get_blog_by_blog_id(blog_id: str): #data type change from int to str
+    entity = await get_blog_by_id(blog_id) #{"p_id": blog_id} => blog_id -function parameter error,parameter was not in format used in get_blog_by_id()
     return entity
 
 
@@ -55,7 +55,7 @@ async def deleteBlog(id:str):
 
 
 @router.get('/blogsByTags',response_model=List[BlogPost])
-async def Blogs_By_tags(tags : List[int]):
+async def Blogs_By_tags(tags : List[int]= Query(..., description="List of tags")): #Query(..., description="List of tags") added to make get request correctly as it includes tag numbers 
     return await get_blogs_byTags(tags)
 
 
