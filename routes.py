@@ -1,7 +1,7 @@
 import json
-from typing import List
+from typing import List, Union
 from fastapi import APIRouter,Depends,HTTPException
-from services import fetch_comments_and_replies, initial_service,get_blogs_byTags,create_blog,update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs, reply_comment,  write_comment
+from services import delete_comment_reply, fetch_comments_and_replies, initial_service,get_blogs_byTags,create_blog, update_Comment_Reply,update_blog, get_blog_by_id,delete_blog_by_id, get_all_blogs, reply_comment,  write_comment
 from typing import List
 from models import BlogPost,Comment, Reply
 
@@ -62,3 +62,11 @@ async def Blogs_By_tags(tags : List[int]):
 @router.get('/blog/{id}/comments', response_model=List[Comment])
 async def get_comments_and_replies(id:str):
     return await fetch_comments_and_replies(id)
+
+@router.put('/edit-comment-reply/{id}', response_model=Union[Comment, Reply])
+async def updateCommentReply(id:str, text:str):
+    return await update_Comment_Reply(id, text)
+
+@router.delete('/delete-comment-reply/{id}')
+async def deleteCommentReply(id:str):
+    return await delete_comment_reply(id)

@@ -122,3 +122,65 @@ async def fetch_comments_and_replies(id: str):
         comment.replies = await fetch_replies(comment.comment_id)
     
     return comments
+
+async def update_Comment_Reply(id:str, text:str):
+    try:
+        objId = ObjectId(id)
+    except:
+        raise HTTPException(400, "Invalid Id Format")
+    
+    #First search in comments collection
+    comment = await collection_comment.find_one({"comment_id": objId})
+    if comment:
+        result = await collection_comment.update_one(
+            {"comment_id": objId},
+            {"$set": {"text": text}}
+        )
+        if result.modified_count == 1:
+            updated_comment = await collection_comment.find_one({"comment_id": objId})
+            return updated_comment
+        raise HTTPException(400, "Comment update failed")
+    
+    #If it is not in comment collection, then search in reply collection
+    reply = await collection_reply.find_one({"reply_id":objId})
+    if reply:
+        result = await collection_reply.update_one(
+            {"reply_id":objId},
+            {"$set": {"text":text}}
+        )
+        if result.modified_count == 1:
+            updated_reply = await collection_reply.find_one({"reply_id": objId})
+            return updated_reply
+        raise HTTPException(400, "Reply update failed")
+    
+    raise HTTPException(404, "Comment or Reply not found")
+
+async def delete_comment_reply(id):
+    try:
+        objId = ObjectId(id)
+    except:
+        raise HTTPException(400, "Invalid Id Format")
+    
+    #First search in comments collection
+    comment = await collection_comment.find_one({"comment_id": objId})
+    if comment:
+        result = await collection_comment.delete_one({'comment_id': objId})
+
+        # Delete all replies associated with the comment
+        result_ = await collection_reply.delete_many({'parentContent_id': objId})
+        if result.deleted_count == 0:
+            raise HTTPException(400, "Comment deletion failed")
+        return {"message": "Comment deleted successfully"}
+    
+    #If it is not in comment collection, then search in reply collection
+    reply = await collection_reply.find_one({"reply_id":objId})
+    if reply:
+        result = await collection_reply.delete_one({'reply_id': objId})
+
+        # Delete all replies associated with the reply
+        result_ = await collection_reply.delete_many({'parentContent_id': objId})
+        if result.deleted_count == 0:
+            raise HTTPException(400, "Reply deletion failed")
+        return {"message": "Reply deleted successfully"}
+    
+    raise HTTPException(404, "Comment or Reply not found")
