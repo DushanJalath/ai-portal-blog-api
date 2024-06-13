@@ -29,9 +29,9 @@ async def createBlog(blog: BlogPost):
 
 
 
-@router.put('/updateblog{id}', response_model=BlogPost)
-async def updateBlog(id: str, title:str, content:str):
-    return await update_blog(id, title, content)
+@router.put('/updateblog/{id}', response_model=BlogPost)
+async def updateBlog(id: str, title:str, content:str, tags:List[int]):
+    return await update_blog(id, title, content, tags)
 
 
 @router.post('/write-comment', response_model=Comment)

@@ -31,7 +31,7 @@ async def create_blog(blog):
     raise HTTPException(400, "Blog Insertion failed")
 
 
-async def update_blog(id, title, content):
+async def update_blog(id, title, content, tags):
     try:
         objId = ObjectId(id)
     except:
@@ -39,7 +39,7 @@ async def update_blog(id, title, content):
     
     result = await collection_blog.update_one(
         {"blogPost_id":objId}, 
-        {"$set":{"title":title, "content":content}}
+        {"$set":{"title":title, "content":content, "tags":tags}}
     )
 
     if result.modified_count == 1:
